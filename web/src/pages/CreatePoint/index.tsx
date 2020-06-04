@@ -1,5 +1,5 @@
-import React, { useEffect, useState, ChangeEvent } from 'react';
-import { Link } from 'react-router-dom';
+import React, { useEffect, useState, ChangeEvent, FormEvent } from 'react';
+import { Link, useHistory } from 'react-router-dom';
 import { FiArrowLeft } from 'react-icons/fi';
 import { Map, TileLayer, Marker } from 'react-leaflet';
 import axios from 'axios';
@@ -60,6 +60,9 @@ const CreatePoint = () => {
 
     //armazena os itens selecionados.
     const [selectedItems, setSelectedItems] = useState<number[]>([]);
+
+    //libera funcionalidade de nos enviar para uma tela
+    const history=useHistory();
 
 
     //useEffect executa 1x e não sempre q o CreatePoint for alterado
@@ -152,7 +155,37 @@ const CreatePoint = () => {
             setSelectedItems([...selectedItems, id]);
         }
     }
-}
+
+    async function handleSubmit(event:FormEvent){
+        //evitar envio para outra tela após enviar form
+        event.preventDefault();
+
+        //pego todos os dados que vou enviar para a API (node)
+        const {name, email, whatsapp}=formData;
+        const uf = selectedUf;
+        const city = selectedCity;
+        const [latitude,longitude]=selectedPosition;
+        const items = selectedItems;
+
+        //e coloca todos items acima dentro de 1 objeto data
+        const data={
+            name,
+            email,
+            whatsapp,
+            uf,
+            city,
+            latitude,
+            longitude,
+            items
+        };//console.log(data);
+        
+        //criar ponto de coleta na api (node)
+        await api.post('points',data);
+
+        alert('Ponto de coleta criado com sucesso!');
+
+        history.push('/');
+    }
 
 return (
     <div id="page-create-point">
@@ -164,7 +197,7 @@ return (
                 </Link>
         </header>
 
-        <form>
+        <form onSubmit={handleSubmit}>
             <h1>Cadastro do <br /> ponto de coleta</h1>
 
             <fieldset>
